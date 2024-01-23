@@ -1,0 +1,8 @@
+# Ignore all .exe files in any folder
+*.exe
+
+# Ignore the .idea folder
+.idea/
+
+# Ignore all .yaml files
+*.yaml
