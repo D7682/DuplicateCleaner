@@ -1,20 +1,10 @@
-// main.go
-
 package main
 
 import (
 	"DuplicateCleaner/internal/config"
 	"DuplicateCleaner/internal/folder"
-	"fmt"
-	"github.com/fatih/color"
+	"DuplicateCleaner/logger"
 	"log"
-	"time"
-)
-
-var (
-	pastelGreen = color.New(color.FgHiGreen).SprintFunc()
-	pastelBlue  = color.New(color.FgHiBlue).SprintFunc()
-	pastelPink  = color.New(color.FgHiMagenta).SprintFunc()
 )
 
 func main() {
@@ -23,53 +13,26 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sourceFolder := cfg.SourceFolder
-	backupFolder := cfg.BackupFolder
+	sourceFolder := cfg.SrcFolder
+	// backupFolder := cfg.BkpFolder
 
 	// Create a folder instance
-	parentFolder := folder.NewFolder(sourceFolder)
+	parentFolder := folder.NewFolder(sourceFolder, &cfg)
+
+	// Initialize logger with both console and file outputs
+	logFilePath := cfg.LogFilePath
+	lgr := logger.NewLogger(logFilePath)
+	defer lgr.Close()
 
 	// Scan with concurrency
-	startConcurrent := time.Now()
-	err = parentFolder.ScanWithConfig(&cfg)
+	err = parentFolder.ScanWithConfig()
 	if err != nil {
-		log.Fatal(err)
+		lgr.Fatal(err)
 	}
-
-	displayResults("Scan with Concurrency", sourceFolder, backupFolder, cfg, parentFolder)
-	fmt.Printf("Time Elapsed (Concurrency): %s\n", time.Since(startConcurrent))
 
 	// Scan without concurrency
-	startSequential := time.Now()
-	err = parentFolder.ScanWithoutConcurrency(&cfg)
+	err = parentFolder.ScanWithoutConcurrency()
 	if err != nil {
-		log.Fatal(err)
+		lgr.Fatal(err)
 	}
-
-	displayResults("Scan without Concurrency", sourceFolder, backupFolder, cfg, parentFolder)
-	fmt.Printf("Time Elapsed (Sequential): %s\n", time.Since(startSequential))
-}
-
-func displayResults(title, sourceFolder, backupFolder string, cfg config.Config, parentFolder *folder.Folder) {
-	// Display results using the logger with color
-	color.White("%s:\n", title)
-	color.White("Source Folder: %v\n", sourceFolder)
-	color.White("Backup Folder: %v\n", backupFolder)
-	color.White("Max Scan Depth: %v\n", cfg.MaxScanDepth)
-
-	// Display file information using the logger with color
-	color.White("Files in the folder:\n")
-	for _, file := range parentFolder.Files {
-		color.Cyan("File: %s\n", file.Path)
-		color.Yellow("MD5 Checksum: %s\n", file.MD5Checksum)
-		// Add more fields as needed
-		color.White("------------------------\n")
-	}
-
-	// Display file count using pastel colors
-	fileCount := len(parentFolder.Files)
-	fmt.Printf("File Count: %s\n", pastelGreen(fileCount))
-
-	// Backup to another folder
-	parentFolder.BackupToFolder(backupFolder)
 }

@@ -9,14 +9,15 @@ import (
 
 // Config struct holds configuration parameters for the duplicate cleaner application
 type Config struct {
-	SourceFolder       string        `mapstructure:"source_folder"`        // Folder to scan for duplicate files (required)
-	BackupFolder       string        `mapstructure:"backup_folder"`        // Backup folder where duplicate files will be moved (required)
-	MaxScanDepth       int           `mapstructure:"max_scan_depth"`       // Maximum depth level to scan recursively (optional, default: infinite)
-	ExcludedFileTypes  []string      `mapstructure:"excluded_file_types"`  // File types to exclude from scanning (optional, default: none)
-	ConcurrentScan     bool          `mapstructure:"concurrent_scan"`      // Enable concurrency for faster scanning (optional, default: true)
-	MaxConcurrentScans int           `mapstructure:"max_concurrent_scans"` // Maximum number of concurrent scans (optional, default: runtime.NumCPU())
-	DuplicateThreshold time.Duration `mapstructure:"duplicate_threshold"`  // Time threshold for considering files as duplicates (optional, default: 1 hour)
-	DryRun             bool          `mapstructure:"dry_run"`              // Whether to dry-run (display duplicates without removing them) (optional, default: false)
+	SrcFolder      string        `mapstructure:"src_folder"`          // SrcFolder to scan for duplicates (required)
+	BkpFolder      string        `mapstructure:"bkp_folder"`          // BkpFolder to specify the path to the backup folder where non-duplicates will be saved. (required)
+	MaxScanDepth   int           `mapstructure:"max_scan_depth"`      // MaxScanDepth specifies the maximum depth level to scan recursively. (optional, default: infinite)
+	ExclExt        []string      `mapstructure:"excluded_extensions"` // ExclExt specifies the list of file extensions to exclude from scanning. (optional, default: none)
+	ConcurrentScan bool          `mapstructure:"concurrent_scan"`     // ConcurrentScan enables concurrency for faster scanning. (optional, default: true)
+	MaxConcurrent  int           `mapstructure:"max_concurrent"`      // MaxConcurrent specifies the maximum number of concurrent scans. (optional, default: runtime.NumCPU())
+	DuplicateThr   time.Duration `mapstructure:"duplicate_threshold"` // DuplicateThr specifies the time threshold for considering files as duplicates. (optional, default: 1 hour)
+	DryRun         bool          `mapstructure:"dry_run"`             // DryRun enables dry-run mode, displaying duplicates without removing them. (optional, default: false)
+	LogFilePath    string        `mapstructure:"log_file_path"`       // LogFilePath specifies the path to the log file to save the scanning results. (optional)
 	// Add other fields as needed...
 }
 
@@ -43,9 +44,9 @@ func LoadConfig(filePath string) (Config, error) {
 	}
 
 	// Check and set default for MaxConcurrentScans
-	if config.MaxConcurrentScans <= 0 {
+	if config.MaxConcurrent <= 0 {
 		// Set default value based on available CPUs
-		config.MaxConcurrentScans = runtime.NumCPU()
+		config.MaxConcurrent = runtime.NumCPU()
 	}
 
 	// You can add validation logic for other fields here
